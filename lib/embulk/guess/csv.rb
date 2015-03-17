@@ -48,7 +48,12 @@ module Embulk
         # don't even set null_string to avoid confusion of null and 'null' in YAML format
 
         sample_records = split_lines(parser_guessed, sample_lines, delim)
-        skip_header_lines = guess_skip_header_lines(sample_records)
+        skip_header_lines = parser_config['skip_header_lines']
+        if( skip_header_lines )
+          skip_header_lines -= 1
+        else
+          skip_header_lines = guess_skip_header_lines(sample_records)
+        end
         sample_records = sample_records[skip_header_lines..-1]
 
         first_types = SchemaGuess.types_from_array_records(sample_records[0, 1])
