@@ -11,7 +11,7 @@ module Embulk
     i = argv.find_index {|arg| arg !~ /^\-/ }
     unless i
       if argv.include?('--version')
-        puts "embulk #{Embulk::VERSION}"
+        puts "embulk #{Embulk::VERSION} (JRuby: #{JRUBY_VERSION})"
         system_exit_success
       end
       usage nil
