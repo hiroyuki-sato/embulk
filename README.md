@@ -129,6 +129,14 @@ Following command updates embulk itself to the latest released version.
 embulk selfupdate
 ```
 
+The `embulk selfupdate` may happen SSL error on Ubuntu.
+If you get it, update certificate once with the following command, and execute `selfupdate` again.
+
+```
+sudo curl -o /usr/local/share/ca-certificates/GTEGlRoot.crt https://www.cybertrust.ne.jp/sureserver/download/root_ca/GTEGlRoot.txt
+sudo update-ca-certificates
+```
+
 Following command updates embulk itself to the specific released version.
 
 ```sh
