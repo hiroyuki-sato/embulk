@@ -30,6 +30,10 @@ import org.embulk.spi.TransactionalFileInput;
 import org.embulk.spi.util.InputStreamTransactionalFileInput;
 import org.slf4j.Logger;
 
+import java.nio.file.FileVisitOption;
+import java.util.Set;
+import java.util.EnumSet;
+
 public class LocalFileInputPlugin
         implements FileInputPlugin
 {
@@ -120,7 +124,11 @@ public class LocalFileInputPlugin
         final String lastPath = task.getLastPath().orNull();
         try {
             log.info("Listing local files at directory '{}' filtering filename by prefix '{}'", directory.equals(CURRENT_DIR) ? "." : directory.toString(), fileNamePrefix);
-            Files.walkFileTree(directory, new SimpleFileVisitor<Path>() {
+
+            int maxDepth = Integer.MAX_VALUE;
+            Set<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+
+            Files.walkFileTree(directory, opts, maxDepth, new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes attrs)
                 {
