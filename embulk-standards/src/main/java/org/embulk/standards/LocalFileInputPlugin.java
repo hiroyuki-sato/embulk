@@ -34,6 +34,8 @@ import java.nio.file.FileVisitOption;
 import java.util.Set;
 import java.util.EnumSet;
 
+import static java.util.Collections.EMPTY_SET;
+
 public class LocalFileInputPlugin
         implements FileInputPlugin
 {
@@ -46,6 +48,10 @@ public class LocalFileInputPlugin
         @Config("last_path")
         @ConfigDefault("null")
         Optional<String> getLastPath();
+
+        @Config("follow_symlink")
+        @ConfigDefault("false")
+        Boolean getFollowSymlink();
 
         List<String> getFiles();
         void setFiles(List<String> files);
@@ -126,7 +132,12 @@ public class LocalFileInputPlugin
             log.info("Listing local files at directory '{}' filtering filename by prefix '{}'", directory.equals(CURRENT_DIR) ? "." : directory.toString(), fileNamePrefix);
 
             int maxDepth = Integer.MAX_VALUE;
-            Set<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            Set<FileVisitOption> opts;
+            if( task.getFollowSymlink() ) {
+                opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+            } else {
+                opts = EnumSet.noneOf(FileVisitOption.class);
+            }
 
             Files.walkFileTree(directory, opts, maxDepth, new SimpleFileVisitor<Path>() {
                 @Override
@@ -156,6 +167,13 @@ public class LocalFileInputPlugin
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes attrs)
                 {
+                    try {
+                        if(  Files.isDirectory(path.toRealPath()) ) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                    } catch (IOException ex){
+                        new Throwable(ex);
+                    }
                     if (lastPath != null && path.toString().compareTo(lastPath) <= 0) {
                         return FileVisitResult.CONTINUE;
                     } else {
