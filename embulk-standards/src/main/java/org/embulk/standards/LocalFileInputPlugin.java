@@ -1,28 +1,15 @@
 package org.embulk.standards;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.Files;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.FileVisitResult;
-import java.nio.file.attribute.BasicFileAttributes;
-import com.google.common.collect.ImmutableList;
 import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableList;
 import org.embulk.config.Config;
-import org.embulk.config.ConfigInject;
 import org.embulk.config.ConfigDefault;
-import org.embulk.config.Task;
-import org.embulk.config.TaskSource;
-import org.embulk.config.ConfigSource;
 import org.embulk.config.ConfigDiff;
+import org.embulk.config.ConfigInject;
+import org.embulk.config.ConfigSource;
+import org.embulk.config.Task;
 import org.embulk.config.TaskReport;
+import org.embulk.config.TaskSource;
 import org.embulk.spi.BufferAllocator;
 import org.embulk.spi.Exec;
 import org.embulk.spi.FileInputPlugin;
@@ -30,8 +17,21 @@ import org.embulk.spi.TransactionalFileInput;
 import org.embulk.spi.util.InputStreamTransactionalFileInput;
 import org.slf4j.Logger;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitResult;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.SimpleFileVisitor;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 
 public class LocalFileInputPlugin
@@ -52,6 +52,7 @@ public class LocalFileInputPlugin
         boolean getFollowSymlinks();
 
         List<String> getFiles();
+
         void setFiles(List<String> files);
 
         @ConfigInject
@@ -95,7 +96,8 @@ public class LocalFileInputPlugin
             if (task.getLastPath().isPresent()) {
                 configDiff.set("last_path", task.getLastPath().get());
             }
-        } else {
+        }
+        else {
             List<String> files = new ArrayList<String>(task.getFiles());
             Collections.sort(files);
             configDiff.set("last_path", files.get(files.size() - 1));
@@ -118,7 +120,8 @@ public class LocalFileInputPlugin
         if (Files.isDirectory(pathPrefix)) {
             directory = pathPrefix;
             fileNamePrefix = "";
-        } else {
+        }
+        else {
             fileNamePrefix = pathPrefix.getFileName().toString();
             Path d = pathPrefix.getParent();
             directory = (d == null ? CURRENT_DIR : d);
@@ -131,21 +134,25 @@ public class LocalFileInputPlugin
 
             int maxDepth = Integer.MAX_VALUE;
             Set<FileVisitOption> opts;
-            if( task.getFollowSymlinks() ) {
+            if (task.getFollowSymlinks()) {
                 opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-            } else {
+            }
+            else {
                 opts = EnumSet.noneOf(FileVisitOption.class);
             }
 
-            Files.walkFileTree(directory, opts, maxDepth, new SimpleFileVisitor<Path>() {
+            Files.walkFileTree(directory, opts, maxDepth, new SimpleFileVisitor<Path>()
+            {
                 @Override
                 public FileVisitResult preVisitDirectory(Path path, BasicFileAttributes attrs)
                 {
                     if (path.equals(directory)) {
                         return FileVisitResult.CONTINUE;
-                    } else if (lastPath != null && path.toString().compareTo(lastPath) <= 0) {
+                    }
+                    else if (lastPath != null && path.toString().compareTo(lastPath) <= 0) {
                         return FileVisitResult.SKIP_SUBTREE;
-                    } else {
+                    }
+                    else {
                         Path parent = path.getParent();
                         if (parent == null) {
                             parent = CURRENT_DIR;
@@ -153,10 +160,12 @@ public class LocalFileInputPlugin
                         if (parent.equals(directory)) {
                             if (path.getFileName().toString().startsWith(fileNamePrefix)) {
                                 return FileVisitResult.CONTINUE;
-                            } else {
+                            }
+                            else {
                                 return FileVisitResult.SKIP_SUBTREE;
                             }
-                        } else {
+                        }
+                        else {
                             return FileVisitResult.CONTINUE;
                         }
                     }
@@ -169,15 +178,17 @@ public class LocalFileInputPlugin
                         // Check symbolic file which points to a directory.
                         // This part is called if the option `follow_symlinks` false.
                         // If the real path is a directory, just ignore it.
-                        if(Files.isDirectory(path.toRealPath())) {
+                        if (Files.isDirectory(path.toRealPath())) {
                             return FileVisitResult.CONTINUE;
                         }
-                    } catch (IOException ex){
-                        throw new RuntimeException("Can't resolve symbolic link",ex);
+                    }
+                    catch (IOException ex) {
+                        throw new RuntimeException("Can't resolve symbolic link", ex);
                     }
                     if (lastPath != null && path.toString().compareTo(lastPath) <= 0) {
                         return FileVisitResult.CONTINUE;
-                    } else {
+                    }
+                    else {
                         Path parent = path.getParent();
                         if (parent == null) {
                             parent = CURRENT_DIR;
@@ -187,14 +198,16 @@ public class LocalFileInputPlugin
                                 builder.add(path.toString());
                                 return FileVisitResult.CONTINUE;
                             }
-                        } else {
+                        }
+                        else {
                             builder.add(path.toString());
                         }
                         return FileVisitResult.CONTINUE;
                     }
                 }
             });
-        } catch (IOException ex) {
+        }
+        catch (IOException ex) {
             throw new RuntimeException(String.format("Failed get a list of local files at '%s'", directory), ex);
         }
         return builder.build();
@@ -209,8 +222,10 @@ public class LocalFileInputPlugin
 
         return new InputStreamTransactionalFileInput(
                 task.getBufferAllocator(),
-                new InputStreamTransactionalFileInput.Opener() {
-                    public InputStream open() throws IOException
+                new InputStreamTransactionalFileInput.Opener()
+                {
+                    public InputStream open()
+                            throws IOException
                     {
                         return new FileInputStream(file);
                     }
