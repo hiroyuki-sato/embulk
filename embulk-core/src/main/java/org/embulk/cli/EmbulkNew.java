@@ -199,9 +199,10 @@ public class EmbulkNew {
                     System.out.println("Next steps:");
                     System.out.println("");
                     System.out.printf("  $ cd %s\n", fullProjectName);
-                    System.out.println("  $ bundle install                      # install one using rbenv & rbenv-build");
-                    System.out.println("  $ bundle exec rake                    # build gem to be released");
-                    System.out.println("  $ bundle exec embulk run config.yml   # you can run plugin using this command");
+                    System.out.println("  $ bundle install                            # install one using rbenv & rbenv-build");
+                    System.out.println("  $ bundle exec rake embulk:test:download_jar # download embulk.jar for testing");
+                    System.out.println("  $ bundle exec rake                          # build gem to be released");
+                    System.out.println("  $ bundle exec embulk run config.yml         # you can run plugin using this command");
                     break;
                 case "java":
                     System.out.println("Next steps:");
